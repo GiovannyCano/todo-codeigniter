@@ -61,7 +61,7 @@ final class TasksEndpointTest extends CIUnitTestCase
         $this->assertSame('1', (string) $updated['completed']);
 
         $del = $this->delete("tasks/{$id}");
-        $del->assertStatus(200); // respondDeleted -> 200 OK con body
+        $del->assertStatus(200);
 
         $after = $this->get("tasks/{$id}");
         $after->assertStatus(404);

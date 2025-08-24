@@ -154,7 +154,6 @@
       await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
     }
 
-    // Primera carga
     loadTasks().catch(err => {
       tbody.innerHTML = '';
       empty.style.display = 'block';
