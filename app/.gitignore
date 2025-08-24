@@ -79,7 +79,7 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 tests/coverage*
 
 # Don't save phpunit under version control.
-phpunit
+# phpunit #se quita del gitignore para que se corran en la prueba tecnica
 
 #-------------------------
 # Composer
@@ -123,4 +123,3 @@ _modules/*
 .vscode/
 
 /results/
-/phpunit*.xml
