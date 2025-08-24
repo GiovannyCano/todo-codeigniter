@@ -23,11 +23,14 @@
     .no { background:#402020; color:#f3b3b3; border-color:#6a2a2a; }
     .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
     .empty { text-align:center; padding: 24px; color:#9fb0d9; }
+    .error { background:#402020; color:#f3b3b3; border:1px solid #6a2a2a; padding:10px 12px; border-radius:10px; margin:10px 0; display:none; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>📝 Todo App</h1>
+
+    <div id="error" class="error"></div>
 
     <form id="form-add">
       <input id="title" type="text" placeholder="Nueva tarea..." required />
@@ -57,19 +60,43 @@
     const empty = document.getElementById('empty');
     const form  = document.getElementById('form-add');
     const title = document.getElementById('title');
+    const errorBox = document.getElementById('error');
+
+    function showError(msg) {
+      errorBox.textContent = msg || 'Error inesperado.';
+      errorBox.style.display = 'block';
+      setTimeout(() => (errorBox.style.display = 'none'), 3500);
+    }
+
+    async function request(url, options = {}) {
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json', ...(options.headers || {}) },
+        ...options
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}${text ? ' - ' + text : ''}`);
+      }
+      const ct = res.headers.get('content-type') || '';
+      return ct.includes('application/json') ? res.json() : null;
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = title.value.trim();
       if (!text) return;
-      await createTask(text);
-      title.value = '';
-      await loadTasks();
+      try {
+        await createTask(text);
+        title.value = '';
+        await loadTasks();
+      } catch (err) {
+        console.error(err);
+        showError('No se pudo crear la tarea.');
+      }
     });
 
     async function loadTasks() {
-      const res = await fetch(`${API}/tasks`);
-      const list = await res.json();
+      const list = await request(`${API}/tasks`);
       render(list);
     }
 
@@ -102,8 +129,13 @@
         btnToggle.className = 'btn-ghost';
         btnToggle.textContent = Number(t.completed) ? 'Marcar pendiente' : 'Marcar completa';
         btnToggle.onclick = async () => {
-          await updateTask(t.id, { completed: Number(!Number(t.completed)) });
-          await loadTasks();
+          try {
+            await updateTask(t.id, { completed: Number(!Number(t.completed)) });
+            await loadTasks();
+          } catch (err) {
+            console.error(err);
+            showError('No se pudo cambiar el estado.');
+          }
         };
 
         const btnEdit = document.createElement('button');
@@ -112,8 +144,13 @@
         btnEdit.onclick = async () => {
           const nuevo = prompt('Nuevo título:', t.title);
           if (nuevo && nuevo.trim()) {
-            await updateTask(t.id, { title: nuevo.trim() });
-            await loadTasks();
+            try {
+              await updateTask(t.id, { title: nuevo.trim() });
+              await loadTasks();
+            } catch (err) {
+              console.error(err);
+              showError('No se pudo actualizar el título.');
+            }
           }
         };
 
@@ -122,8 +159,13 @@
         btnDel.textContent = 'Eliminar';
         btnDel.onclick = async () => {
           if (confirm(`¿Eliminar tarea #${t.id}?`)) {
-            await deleteTask(t.id);
-            await loadTasks();
+            try {
+              await deleteTask(t.id);
+              await loadTasks();
+            } catch (err) {
+              console.error(err);
+              showError('No se pudo eliminar la tarea.');
+            }
           }
         };
 
@@ -135,7 +177,7 @@
     }
 
     async function createTask(title) {
-      await fetch(`${API}/tasks`, {
+      return request(`${API}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, completed: 0 })
@@ -143,7 +185,7 @@
     }
 
     async function updateTask(id, patch) {
-      await fetch(`${API}/tasks/${id}`, {
+      return request(`${API}/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(patch)
@@ -151,14 +193,15 @@
     }
 
     async function deleteTask(id) {
-      await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+      return request(`${API}/tasks/${id}`, { method: 'DELETE' });
     }
 
     loadTasks().catch(err => {
+      console.error(err);
       tbody.innerHTML = '';
       empty.style.display = 'block';
       empty.textContent = 'Error cargando tareas';
-      console.error(err);
+      showError('No se pudo cargar la lista.');
     });
   </script>
 </body>
