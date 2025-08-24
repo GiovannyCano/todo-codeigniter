@@ -7,7 +7,6 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./app:/var/www/html
-      - ./docker/app/entrypoint.sh:/usr/local/bin/ci-boot.sh:ro
     environment:
       DB_HOST: db
       DB_NAME: todo
@@ -16,7 +15,6 @@ services:
       APP_ENV: development
       COMPOSER_ALLOW_SUPERUSER: "1"
       MIGRATE_ON_BOOT: "1"
-    entrypoint: ["/bin/sh","-lc","ci-boot.sh && php-fpm"]
     depends_on:
       db:
         condition: service_healthy
