@@ -31,6 +31,10 @@ Incluye **frontend** (HTML/CSS/JS) servido en el mismo puerto, **seed automátic
 > - Corre **seed idempotente** si la tabla está vacía (`SEED_ON_BOOT=1`).
 
 ```bash
+# Clonar
+git clone https://github.com/GiovannyCano/todo-codeigniter.git
+cd todo-codeigniter
+
 # Levantar todo
 docker compose up -d --build
 
@@ -73,6 +77,9 @@ docker compose logs -f app
 # GET lista
 curl.exe -s http://localhost:8080/tasks
 
+# GET lista 1 item
+curl.exe -s http://localhost:8080/tasks/1
+
 # POST crear
 curl.exe -s -X POST http://localhost:8080/tasks `
   -H "Content-Type: application/json" `
@@ -99,6 +106,9 @@ irm http://localhost:8080/tasks | ConvertTo-Json -Depth 10
 ```bash
 # GET lista
 curl -s http://localhost:8080/tasks
+
+# GET lista 1 item
+curl -s http://localhost:8080/tasks/1
 
 # POST crear
 curl -s -X POST http://localhost:8080/tasks   -H "Content-Type: application/json"   -d '{"title":"Nueva tarea","completed":0}'
